@@ -100,28 +100,22 @@ void update_feq(double* restrict feq, double* restrict rho, struct vec * restric
 
 void collide(double* restrict ft, double* restrict f, double* restrict feq, int obstacle[], double omega) {
 #pragma omp parallel for collapse(2)
-   for (int q = 0; q < 9; q++) {
-      for (int i = 0; i < N*M; i++) {
+   for (int i = 0; i < N*M; i++) {
+      for (int q = 0; q < 9; q++) {
          int id = 9*i + q;
-         ft[id] = f[id] - omega * (f[id] - feq[id]);
-      }
-   }
-
-#pragma omp parallel for collapse(2)
-   for (int q = 0; q < 9; q++) {
-      for (int i = 0; i < N*M; i++) {
-         if (obstacle[i]) {
-            ft[9*i + q] = f[9*i + noslip[q]];
-         }
+         if (!obstacle[i])
+            ft[id] = f[id] - omega * (f[id] - feq[id]);
+         else
+            ft[id] = f[9*i + noslip[q]];
       }
    }
 }
 
 void stream(double* restrict f, double* restrict ft) {
 #pragma omp parallel for collapse(3)
-   for (int q = 0; q < 9; q++) {
-      for (int i = 0; i < N; i++) {
-         for (int j = 0; j < M; j++) {
+   for (int i = 0; i < N; i++) {
+      for (int j = 0; j < M; j++) {
+         for (int q = 0; q < 9; q++) {
             f[9*idx((N + (i + c[q][0]) % N) % N, (M + (j + c[q][1]) % M) % M) + q] = ft[9*idx(i, j) + q];
          }
       }
@@ -136,8 +130,8 @@ static inline double inlet_vel(int k, int i, double ulb) {
 void update(double* restrict f, double* restrict ft, double* restrict feq, double* restrict rho, struct vec * restrict u, int obstacle[], double cs, double omega, double ulb) {
    // outflow
 #pragma omp parallel for collapse(2)
-   for (int q = 3; q < 6; q++)
-      for (int j = 0; j < M; j++)
+   for (int j = 0; j < M; j++)
+      for (int q = 3; q < 6; q++)
          f[9*idx(N-1, j) + q] = f[9*idx(N-2, j) + q];
 
    update_rho(rho, f);
@@ -160,8 +154,8 @@ void update(double* restrict f, double* restrict ft, double* restrict feq, doubl
    }
    update_feq(feq, rho, u, cs);
 #pragma omp parallel for collapse(2)
-   for (int q = 6; q < 9; q++)
-      for (int j = 0; j < M; j++)
+   for (int j = 0; j < M; j++)
+      for (int q = 6; q < 9; q++)
          f[9*j + q] = feq[9*j + q];
 
    collide(ft, f, feq, obstacle, omega);
@@ -216,8 +210,8 @@ int main() {
    }
 
    update_feq(feq, rho, u, cs);
-   for (int q = 0; q < 9; q++)
-      for (int i = 0; i < N*M; i++)
+   for (int i = 0; i < N*M; i++)
+      for (int q = 0; q < 9; q++)
          f[9*i + q] = feq[9*i + q];
 
    int T = 20000;
