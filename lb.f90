@@ -42,6 +42,7 @@ subroutine update_rho(rho, f)
    integer :: i, j, q
    double precision :: s
 
+   !$omp parallel do collapse(2) private(i,j,q,s)
    do j=1,M
       do i=1,N
          s = 0.0d0
@@ -65,6 +66,7 @@ subroutine update_u(u, rho, f)
    integer :: i, j, q
    double precision :: s1, s2
 
+   !$omp parallel do collapse(2) private(i,j,q,s1,s2)
    do j=1,M
       do i=1,N
          s1 = 0.0d0
@@ -93,6 +95,7 @@ subroutine update_feq(feq, rho, u, cs)
 
    oocs2 = 1.0d0 / cs**2
 
+   !$omp parallel do collapse(3) private(i,j,q,cu,u2)
    do q=1,9
       do j=1,M
          do i=1,N
@@ -114,6 +117,7 @@ subroutine collide(ft, f, feq, obstacle, omega)
    double precision :: omega
    integer :: i, j, q
 
+   !$omp parallel do collapse(3) private(i,j,q)
    do q=1,9
       do j=1,M
          do i=1,N
@@ -134,6 +138,7 @@ subroutine stream(f, ft)
    double precision, dimension(0:N-1, 0:M-1, 9) :: f, ft
    integer :: i, j, q
 
+   !$omp parallel do collapse(3) private(i,j,q)
    do q=1,9
       do j=0,M-1
          do i=0,N-1
@@ -168,6 +173,7 @@ subroutine update(f, ft, feq, rho, u, obstacle, cs, omega, ulb)
    double precision :: inlet_vel
 
    ! outflow
+   !$omp parallel do collapse(2) private(j,q)
    do q=4,6
       do j=1,M
          f(N, j, q) = f(N-1, j, q)
@@ -178,6 +184,7 @@ subroutine update(f, ft, feq, rho, u, obstacle, cs, omega, ulb)
    call update_u(u, rho, f)
 
    ! inflow
+   !$omp parallel do private(j,q,s1,s2)
    do j=1,M
       s1 = 0.0d0
       s2 = 0.0d0
@@ -195,6 +202,7 @@ subroutine update(f, ft, feq, rho, u, obstacle, cs, omega, ulb)
       rho(1, j) = 1.0d0 / (1.0d0 - u(1, j, 1)) * (s2 + 2.0d0 * s1)
    end do
    call update_feq(feq, rho, u, cs)
+   !$omp parallel do collapse(2) private(j,q)
    do q=7,9
       do j=1,M
          f(1, j, q) = feq(1, j, q)
