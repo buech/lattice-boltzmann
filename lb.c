@@ -9,11 +9,11 @@
 #endif
 
 #ifndef N
-#define N 130
+#define N 128
 #endif
 
 #ifndef M
-#define M 45
+#define M 48
 #endif
 
 static const int cx = N / 4;
@@ -217,7 +217,7 @@ int main() {
       for (int i = 0; i < N*M; i++)
          f[9*i + q] = feq[9*i + q];
 
-   int T = 30000;
+   int T = 20000;
    //int barsteps = (int)ceil(T / 100.);
    //int barwidth = 40;
    for (int t = 0; t < T; t++) {
