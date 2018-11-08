@@ -51,10 +51,10 @@ struct vec {
 };
 
 static inline int idx(int i, int j) {
-   int idx = M * i + j;
-   assert(idx >= 0);
-   assert(idx < N*M);
-   return idx;
+   int id = M * i + j;
+   assert(id >= 0);
+   assert(id < N*M);
+   return id;
 }
 
 void update_rho(double* restrict rho, double* restrict f) {
