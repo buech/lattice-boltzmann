@@ -98,7 +98,7 @@ void update_feq(double* restrict feq, double* restrict rho, struct vec * restric
    }
 }
 
-void collide(double* restrict ft, double* restrict f, double* restrict feq, int obstacle[], double omega) {
+void collide(double* restrict ft, double* restrict f, double* restrict feq, int* restrict obstacle, double omega) {
 #pragma omp parallel for collapse(2)
    for (int i = 0; i < N*M; i++) {
       for (int q = 0; q < 9; q++) {
@@ -127,7 +127,7 @@ static inline double inlet_vel(int k, int i, double ulb) {
    return (1. - k) * ulb * (1. + 1.e-4 * sin(2.*M_PI * x));
 }
 
-void update(double* restrict f, double* restrict ft, double* restrict feq, double* restrict rho, struct vec * restrict u, int obstacle[], double cs, double omega, double ulb) {
+void update(double* restrict f, double* restrict ft, double* restrict feq, double* restrict rho, struct vec * restrict u, int* restrict obstacle, double cs, double omega, double ulb) {
    // outflow
 #pragma omp parallel for collapse(2)
    for (int j = 0; j < M; j++)
