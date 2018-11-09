@@ -220,10 +220,10 @@ subroutine print_u(u, t)
    real(kind=8), dimension(N, M, 2) :: u
    integer :: t, i, j
 
-   write (*, '(i0,x)', advance='no') t
+   write (*, '(i0,1x)', advance='no') t
    do i=1,N
       do j=1,M
-         write (*, '(f0.10,x)', advance='no') sqrt(u(i,j,1)**2 + u(i,j,2)**2)
+         write (*, '(f0.10,1x)', advance='no') sqrt(u(i,j,1)**2 + u(i,j,2)**2)
       end do
    end do
    print *
