@@ -30,7 +30,7 @@ integer, dimension(9,2) :: c = transpose(reshape((/&
    1,  1 &
    /), (/2, 9/)))
 
-integer, dimension(9) :: noslip = (/0, 2, 1, 6, 8, 7, 3, 5, 4/)
+integer, dimension(9) :: noslip = (/1, 3, 2, 7, 9, 8, 4, 6, 5/)
 
 end module
 
@@ -124,7 +124,7 @@ subroutine collide(ft, f, feq, obstacle, omega)
             if(obstacle(i,j) == 0) then
                ft(i,j,q) = f(i,j,q) - omega * (f(i,j,q) - feq(i,j,q))
             else
-               ft(i,j,q) = f(i,j,noslip(q)+1)
+               ft(i,j,q) = f(i,j,noslip(q))
             end if
          end do
       end do
