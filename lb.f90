@@ -6,7 +6,7 @@ integer, parameter :: cx = N / 4
 integer, parameter :: cy = M / 2
 integer, parameter :: r = M / 9
 
-double precision, dimension(9) :: w = (/&
+real(kind=8), dimension(9) :: w = (/&
    4.0d0/9.0d0 ,&
    1.0d0/9.0d0 ,&
    1.0d0/9.0d0 ,&
@@ -37,10 +37,10 @@ end module
 subroutine update_rho(rho, f)
    use constants
    implicit none
-   double precision, dimension(N, M) :: rho
-   double precision, dimension(N, M, 9) :: f
+   real(kind=8), dimension(N, M) :: rho
+   real(kind=8), dimension(N, M, 9) :: f
    integer :: i, j, q
-   double precision :: s
+   real(kind=8) :: s
 
    !$omp parallel do collapse(2) private(i,j,q,s)
    do j=1,M
@@ -60,11 +60,11 @@ end subroutine
 subroutine update_u(u, rho, f)
    use constants
    implicit none
-   double precision, dimension(N, M, 2) :: u
-   double precision, dimension(N, M) :: rho
-   double precision, dimension(N, M, 9) :: f
+   real(kind=8), dimension(N, M, 2) :: u
+   real(kind=8), dimension(N, M) :: rho
+   real(kind=8), dimension(N, M, 9) :: f
    integer :: i, j, q
-   double precision :: s1, s2
+   real(kind=8) :: s1, s2
 
    !$omp parallel do collapse(2) private(i,j,q,s1,s2)
    do j=1,M
@@ -87,10 +87,10 @@ end subroutine
 subroutine update_feq(feq, rho, u, cs)
    use constants
    implicit none
-   double precision, dimension(N, M, 9) :: feq
-   double precision, dimension(N, M) :: rho
-   double precision, dimension(N, M, 2) :: u
-   double precision :: cs, oocs2, cu, u2
+   real(kind=8), dimension(N, M, 9) :: feq
+   real(kind=8), dimension(N, M) :: rho
+   real(kind=8), dimension(N, M, 2) :: u
+   real(kind=8) :: cs, oocs2, cu, u2
    integer :: i, j, q
 
    oocs2 = 1.0d0 / cs**2
@@ -112,9 +112,9 @@ end subroutine
 subroutine collide(ft, f, feq, obstacle, omega)
    use constants
    implicit none
-   double precision, dimension(N, M, 9) :: ft, f, feq
+   real(kind=8), dimension(N, M, 9) :: ft, f, feq
    integer, dimension(N, M) :: obstacle
-   double precision :: omega
+   real(kind=8) :: omega
    integer :: i, j, q
 
    !$omp parallel do collapse(3) private(i,j,q)
@@ -135,7 +135,7 @@ end subroutine
 subroutine stream(f, ft)
    use constants
    implicit none
-   double precision, dimension(0:N-1, 0:M-1, 9) :: f, ft
+   real(kind=8), dimension(0:N-1, 0:M-1, 9) :: f, ft
    integer :: i, j, q
 
    !$omp parallel do collapse(3) private(i,j,q)
@@ -153,10 +153,10 @@ function inlet_vel(k, i, ulb) result(v)
    use constants
    implicit none
    integer, intent(in) :: k, i
-   double precision, intent(in) :: ulb
-   double precision :: x, v
+   real(kind=8), intent(in) :: ulb
+   real(kind=8) :: x, v
 
-   x = dble(i) / (M-1)
+   x = real(i,8) / (M-1)
    v = (1.0d0 - k) * ulb * (1.0d0 + 0.0001d0 * sin(2.0d0 * 3.142d0 * x))
 
 end function
@@ -164,13 +164,13 @@ end function
 subroutine update(f, ft, feq, rho, u, obstacle, cs, omega, ulb)
    use constants
    implicit none
-   double precision, dimension(N, M, 9) :: f, ft, feq
-   double precision, dimension(N, M) :: rho
+   real(kind=8), dimension(N, M, 9) :: f, ft, feq
+   real(kind=8), dimension(N, M) :: rho
    integer, dimension(N, M) :: obstacle
-   double precision, dimension(N, M, 2) :: u
-   double precision :: cs, omega, ulb, s1, s2
+   real(kind=8), dimension(N, M, 2) :: u
+   real(kind=8) :: cs, omega, ulb, s1, s2
    integer :: j, q
-   double precision :: inlet_vel
+   real(kind=8) :: inlet_vel
 
    ! outflow
    !$omp parallel do collapse(2) private(j,q)
@@ -217,7 +217,7 @@ end subroutine
 subroutine print_u(u, t)
    use constants
    implicit none
-   double precision, dimension(N, M, 2) :: u
+   real(kind=8), dimension(N, M, 2) :: u
    integer :: t, i, j
 
    write (*, '(i0,x)', advance='no') t
@@ -233,20 +233,27 @@ end subroutine
 program lb
    use constants
    implicit none
-   double precision, parameter :: cs = 1.0d0 / sqrt(3.0d0)
-   double precision, parameter :: Re = 160.0d0
-   double precision, parameter :: ulb = 0.04d0
-   double precision, parameter :: nu = ulb * r / Re
-   double precision, parameter :: omega = 1.0d0 / (3.0d0 * nu + 0.5d0)
+   real(kind=8), parameter :: cs = 1.0d0 / sqrt(3.0d0)
+   real(kind=8), parameter :: Re = 160.0d0
+   real(kind=8), parameter :: ulb = 0.04d0
+   real(kind=8), parameter :: nu = ulb * r / Re
+   real(kind=8), parameter :: omega = 1.0d0 / (3.0d0 * nu + 0.5d0)
    integer, parameter :: T = 20000
 
-   double precision, dimension(N, M, 9) :: f, ft, feq
-   double precision, dimension(N, M) :: rho
-   integer, dimension(N, M) :: obstacle
-   double precision, dimension(N, M, 2) :: u
+   real(kind=8), allocatable :: f(:,:,:), ft(:,:,:), feq(:,:,:)
+   real(kind=8), allocatable :: rho(:,:)
+   integer, allocatable :: obstacle(:,:)
+   real(kind=8), allocatable :: u(:,:,:)
 
    integer :: i, j, q, time
-   double precision :: inlet_vel
+   real(kind=8) :: inlet_vel
+
+   allocate(f(N,M,9))
+   allocate(ft(N,M,9))
+   allocate(feq(N,M,9))
+   allocate(rho(N,M))
+   allocate(obstacle(N,M))
+   allocate(u(N,M,2))
 
    do j=1,M
       do i=1,N
