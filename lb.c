@@ -117,7 +117,7 @@ void boundary(double* restrict f, double ulb) {
 }
 
 void collstream(double* restrict fnew, double* restrict fold, int* restrict obstacle, double omega) {
-#pragma omp parallel for collapse(3)
+#pragma omp parallel for
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
          for (int q = 0; q < 9; q++) {
