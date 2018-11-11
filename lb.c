@@ -107,25 +107,38 @@ void boundary(double* restrict f, double ulb) {
             sum1 += f[9*j + q];
       }
 
-      double rho_j = 1. / (1 - u_x) * (sum2 + 2*sum1);
+      double rho_j = 1. / (1 - ux) * (sum2 + 2*sum1);
 
       for (int q = 6; q < 9; q++) {
-         double cu = c[q][0] * u_x + c[q][1] * u_y;
+         double cu = c[q][0] * ux + c[q][1] * uy;
          f[9*j + q] = w[q] * rho_j * (1 + 3 * cu + 0.5 * 9 * cu*cu - 0.5 * 3 * u2);
       }
    }
 }
 
 void collstream(double* restrict fnew, double* restrict fold, int* restrict obstacle, double omega) {
-#pragma omp parallel for
+#pragma omp parallel for collapse(2)
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
+         double ux = 0;
+         double uy = 0;
+         double rho_ij = 0;
+         for (int q = 0; q < 9; q++) {
+            rho_ij += fold[9*idx(i,j) + q];
+            ux += fold[9*idx(i,j) + q] * c[q][0];
+            uy += fold[9*idx(i,j) + q] * c[q][1];
+         }
+         ux /= rho_ij;
+         uy /= rho_ij;
+         double u2 = ux*ux + uy*uy;
          for (int q = 0; q < 9; q++) {
             int id = 9*idx(i,j) + q;
             int idnew = 9*idx(mod(i + c[q][0], N), mod(j + c[q][1], M)) + q;
-            if (!obstacle[idx(i,j)])
-               fnew[idnew] = (1 - omega) * fold[id] + omega*feq(i,j,q, fold);
-            else
+            double cu = c[q][0] * ux + c[q][1] * uy;
+            if (!obstacle[idx(i,j)]) {
+               double feq_ijq = w[q] * rho_ij * (1 + 3 * cu + 0.5 * 9 * cu*cu - 0.5 * 3 * u2);
+               fnew[idnew] = (1 - omega) * fold[id] + omega*feq_ijq;
+            } else
                fnew[idnew] = fold[9*idx(i,j) + noslip[q]];
          }
       }
