@@ -152,10 +152,7 @@ void update(double* restrict fnew, double* restrict fold, int* restrict obstacle
    boundary(fnew, ulb);
 }
 
-static inline void print_u(double* restrict f, int t) {
-   if (t % 100)
-      return;
-
+static void print_u(double* restrict f, int t) {
    printf("%d", t);
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
@@ -221,10 +218,10 @@ int main() {
       }
       */
       if (t % 2) {
-         print_u(fnew, t);
          update(fold, fnew, obstacle, omega, ulb);
       } else {
-         print_u(fold, t);
+         if(!(t % 100))
+            print_u(fold, t);
          update(fnew, fold, obstacle, omega, ulb);
       }
    }
