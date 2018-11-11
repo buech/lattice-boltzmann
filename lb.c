@@ -96,9 +96,9 @@ void boundary(double* restrict f, double ulb) {
 
    // inflow
    for (int j = 0; j < M; j++) {
-      double u_x = inlet_vel(0, j, ulb);
-      double u_y = inlet_vel(1, j, ulb);
-      double u2 = u_x*u_x + u_y*u_y;
+      double ux = inlet_vel(0, j, ulb);
+      double uy = inlet_vel(1, j, ulb);
+      double u2 = ux*ux + uy*uy;
       double sum1 = 0, sum2 = 0;
       for (int q = 0; q < 6; q++) {
          if (q < 3)
