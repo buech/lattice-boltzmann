@@ -62,7 +62,7 @@ static inline double inlet_vel(int k, int i, double ulb) {
    return (1. - k) * ulb * (1. + 1.e-4 * sin(2.*M_PI * x));
 }
 
-double rho(int i, int j, double* restrict f) {
+static inline double rho(int i, int j, double* restrict f) {
    double sum = 0;
    for (int q = 0; q < 9; q++)
       sum += f[9*idx(i,j) + q];
@@ -70,7 +70,7 @@ double rho(int i, int j, double* restrict f) {
    return sum;
 }
 
-double u(int k, int i, int j, double* restrict f) {
+static inline double u(int k, int i, int j, double* restrict f) {
    double sum = 0;
    for (int q = 0; q < 9; q++)
       sum += f[9*idx(i,j) + q] * c[q][k];
