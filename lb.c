@@ -48,8 +48,6 @@ static const int noslip[9] = {0, 2, 1, 6, 8, 7, 3, 5, 4};
 
 static inline int idx(int i, int j) {
    int id = M * i + j;
-   assert(id >= 0);
-   assert(id < N*M);
    return id;
 }
 
