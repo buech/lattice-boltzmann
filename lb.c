@@ -57,9 +57,9 @@ static inline int mod(int a, int b) {
    return (b + a%b) % b;
 }
 
-static inline double inlet_vel(int k, int i, double ulb) {
+static inline double inlet_vel(int i, double ulb) {
    double x = (double)i / (M-1);
-   return (1. - k) * ulb * (1. + 1.e-4 * sin(2.*M_PI * x));
+   return ulb * (1. + 1.e-4 * sin(2.*M_PI * x));
 }
 
 static inline double rho(int i, int j, double* restrict f) {
@@ -98,9 +98,8 @@ void boundary(double* restrict f, double ulb) {
 
    // inflow
    for (int j = 0; j < M; j++) {
-      double ux = inlet_vel(0, j, ulb);
-      double uy = inlet_vel(1, j, ulb);
-      double u2 = ux*ux + uy*uy;
+      double ux = inlet_vel(j, ulb);
+      double u2 = ux*ux;
       double sum1 = 0, sum2 = 0;
       for (int q = 0; q < 6; q++) {
          if (q < 3)
@@ -112,7 +111,7 @@ void boundary(double* restrict f, double ulb) {
       double rho_j = 1. / (1 - ux) * (sum2 + 2*sum1);
 
       for (int q = 6; q < 9; q++) {
-         double cu = c[q][0] * ux + c[q][1] * uy;
+         double cu = c[q][0] * ux;
          f[9*j + q] = w[q] * rho_j * (1 + 3 * cu + 0.5 * 9 * cu*cu - 0.5 * 3 * u2);
       }
    }
@@ -185,11 +184,10 @@ int main() {
 
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
-         double ux = inlet_vel(0, j, ulb);
-         double uy = inlet_vel(1, j, ulb);
-         double u2 = ux*ux + uy*uy;
+         double ux = inlet_vel(j, ulb);
+         double u2 = ux*ux;
          for (int q = 0; q < 9; q++) {
-            double cu = c[q][0] * ux + c[q][1] * uy;
+            double cu = c[q][0] * ux;
             fold[9*idx(i,j) + q] = w[q] * 1.0 * (1 + 3 * cu + 0.5 * 9 * cu*cu - 0.5 * 3 * u2);
          }
       }
