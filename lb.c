@@ -78,18 +78,6 @@ static inline double u(int k, int i, int j, double* restrict f) {
    return sum / rho(i,j, f);
 }
 
-/*
-static inline double feq(int i, int j, int q, double* restrict f) {
-   double ux = u(0,i,j, f);
-   double uy = u(1,i,j, f);
-
-   double cu = c[q][0] * ux + c[q][1] * uy;
-   double u2 = ux * ux + uy * uy;
-
-   return w[q] * rho(i,j, f) * (1 + 3 * cu + 0.5 * 9 * cu*cu - 0.5 * 3 * u2);
-}
-*/
-
 void boundary(double* restrict f, double ulb) {
    // outflow
    for (int j = 0; j < M; j++)
