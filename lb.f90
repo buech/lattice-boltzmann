@@ -34,12 +34,12 @@ integer, dimension(9) :: noslip = (/1, 3, 2, 7, 9, 8, 4, 6, 5/)
 
 end module
 
-function pmod(a, b) result(m)
+function pmod(a, b) result(res)
    implicit none
    integer, intent(in) :: a, b
-   integer :: m
+   integer :: res
 
-   m = mod(b + mod(a,b), b)
+   res = mod(b + mod(a,b), b)
 
 end function
 
