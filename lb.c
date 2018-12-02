@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <assert.h>
 
 #define _USE_MATH_DEFINES
 #ifndef M_PI
