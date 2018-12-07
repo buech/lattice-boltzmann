@@ -179,27 +179,7 @@ int main() {
    }
 
    int T = 20000;
-   //int barsteps = (int)ceil(T / 100.);
-   //int barwidth = 40;
    for (int t = 0; t < T; t++) {
-      /*
-      if (!(t % 10)) {
-         float progress = (float)t / (T - 2);
-
-         putchar('[');
-         int pos = barwidth * progress;
-         for (int i = 0; i < barwidth; ++i) {
-            if (i < pos)
-               putchar('=');
-            else if (i == pos)
-               putchar('>');
-            else
-               putchar(' ');
-         }
-         printf("] %d \r", (int)(progress * 100.0));
-         fflush(stdout);
-      }
-      */
       if (t % 2) {
          update(fold, fnew, obstacle, omega, ulb);
       } else {
