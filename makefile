@@ -1,10 +1,15 @@
+FC ?= gfortran
 CFLAGS += -std=c99
 CFLAGS += -Wall -Wextra -pedantic
 FFLAGS += -Wall -Wextra -pedantic
-
 LDLIBS = -lm
 
-FC = gfortran
+OMP ?= 1
+ifeq ($(OMP), 1)
+	CFLAGS += -fopenmp
+	FFLAGS += -fopenmp
+	LDFLAGS += -fopenmp
+endif
 
 all: lb lbf
 
