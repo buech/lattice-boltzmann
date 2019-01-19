@@ -158,14 +158,9 @@ int main() {
    double* restrict fold = malloc(9 * N * M * sizeof(double));
 
    int* restrict obstacle = malloc(N*M * sizeof(int));
-   for (int i = 0; i < N; i++) {
-      for (int j = 0; j < M; j++) {
-         if ((i-cx)*(i-cx) + (j-cy)*(j-cy) < r*r)
-            obstacle[idx(i, j)] = 1;
-         else
-            obstacle[idx(i, j)] = 0;
-      }
-   }
+   for (int i = 0; i < N; i++)
+      for (int j = 0; j < M; j++)
+         obstacle[idx(i,j)] = ((i-cx)*(i-cx) + (j-cy)*(j-cy) < r*r);
 
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
