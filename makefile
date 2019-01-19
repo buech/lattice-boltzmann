@@ -8,7 +8,6 @@ OMP ?= 1
 ifeq ($(OMP), 1)
 	CFLAGS += -fopenmp
 	FFLAGS += -fopenmp
-	LDFLAGS += -fopenmp
 endif
 
 all: lb lbf
