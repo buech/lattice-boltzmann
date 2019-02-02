@@ -1,4 +1,4 @@
-FC ?= gfortran
+FC = gfortran
 CFLAGS += -std=c99
 CFLAGS += -Wall -Wextra -pedantic
 FFLAGS += -Wall -Wextra -pedantic
