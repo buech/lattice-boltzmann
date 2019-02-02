@@ -4,7 +4,7 @@ CFLAGS += -Wall -Wextra -pedantic
 FFLAGS += -Wall -Wextra -pedantic
 LDLIBS = -lm
 
-OMP ?= 1
+OMP ?= 0
 ifeq ($(OMP), 1)
 	CFLAGS += -fopenmp
 	FFLAGS += -fopenmp
