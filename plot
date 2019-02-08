@@ -6,6 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
+usage = "usage: %s LENGTH HEIGHT FILENAME" % sys.argv[0]
+
+if len(sys.argv) != 4:
+    print(usage)
+    exit(1)
+
 N = int(sys.argv[1])
 M = int(sys.argv[2])
 fname = sys.argv[3]
