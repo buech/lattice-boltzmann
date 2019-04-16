@@ -3,7 +3,7 @@
 module constants
 integer, parameter :: cx = N / 4
 integer, parameter :: cy = M / 2
-integer, parameter :: r = M / 9
+real, parameter :: r = M / 9.0
 
 real(kind=8), dimension(9) :: w = (/&
    4.0d0/9.0d0 ,&
