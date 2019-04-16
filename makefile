@@ -1,6 +1,6 @@
 FC = gfortran
-CFLAGS += -std=c99
-FFLAGS += -Wall -Wextra -pedantic -cpp
+CFLAGS += -std=c99 -Wall -Wextra -pedantic
+FFLAGS += -std=f2003 -Wall -Wextra -pedantic -cpp
 LDLIBS = -lm
 
 OMP ?= 0
