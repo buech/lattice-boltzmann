@@ -13,7 +13,7 @@ all: lb lbf
 
 lb: lb.c
 
-lbf: lb.F90
+lbf: lb.f90
 	$(FC) $(FFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
