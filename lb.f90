@@ -121,7 +121,7 @@ subroutine collstream(fnew, fold, obstacle, omega)
    real(kind=8) :: omega, ux, uy, rho_ij, u2, cu
    integer :: i, j, q, pmod
 
-   !$omp parallel do collapse(2) private(i,j,q,rho_ij,ux,uy,u2)
+   !$omp parallel do collapse(2) private(i,j,q,rho_ij,ux,uy,u2,cu)
    do j=1,M
       do i=1,N
          rho_ij = 0.0d0
