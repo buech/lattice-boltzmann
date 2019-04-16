@@ -1,7 +1,6 @@
 FC = gfortran
 CFLAGS += -std=c99
-CFLAGS += -Wall -Wextra -pedantic
-FFLAGS += -Wall -Wextra -pedantic
+FFLAGS += -Wall -Wextra -pedantic -cpp
 LDLIBS = -lm
 
 OMP ?= 0
@@ -14,8 +13,8 @@ all: lb lbf
 
 lb: lb.c
 
-lbf: lb.f90
-	$(FC) $(FFLAGS) $< -o $@
+lbf: lb.F90
+	$(FC) $(FFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
 	rm -f lb lbf constants.mod

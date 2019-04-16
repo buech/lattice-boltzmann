@@ -2,17 +2,11 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "param.h"
+
 #define _USE_MATH_DEFINES
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
-#endif
-
-#ifndef N
-#define N 128
-#endif
-
-#ifndef M
-#define M 48
 #endif
 
 static const int cx = N / 4;
@@ -54,9 +48,9 @@ static inline int mod(int a, int b) {
    return (b + a%b) % b;
 }
 
-static inline double inlet_vel(int i, double ulb) {
+static inline double inlet_vel(int i) {
    double x = (double)i / (M-1);
-   return ulb * (1. + 1.e-4 * sin(2.*M_PI * x));
+   return ULB * (1. + 1.e-4 * sin(2.*M_PI * x));
 }
 
 static inline double rho(int i, int j, double* restrict f) {
@@ -75,7 +69,7 @@ static inline double u(int k, int i, int j, double* restrict f) {
    return sum / rho(i,j, f);
 }
 
-void boundary(double* restrict f, double ulb) {
+void boundary(double* restrict f) {
    // outflow
    for (int j = 0; j < M; j++)
       for (int q = 3; q < 6; q++)
@@ -83,7 +77,7 @@ void boundary(double* restrict f, double ulb) {
 
    // inflow
    for (int j = 0; j < M; j++) {
-      double ux = inlet_vel(j, ulb);
+      double ux = inlet_vel(j);
       double u2 = ux*ux;
       double sum1 = 0, sum2 = 0;
       for (int q = 0; q < 6; q++) {
@@ -131,9 +125,9 @@ void collstream(double* restrict fnew, double* restrict fold, int* restrict obst
    }
 }
 
-void update(double* restrict fnew, double* restrict fold, int* restrict obstacle, double omega, double ulb) {
+void update(double* restrict fnew, double* restrict fold, int* restrict obstacle, double omega) {
    collstream(fnew, fold, obstacle, omega);
-   boundary(fnew, ulb);
+   boundary(fnew);
 }
 
 static void print_u(double* restrict f, int t) {
@@ -149,9 +143,7 @@ static void print_u(double* restrict f, int t) {
 }
 
 int main() {
-   double Re = 160.;
-   double ulb = 0.04;
-   double nu = ulb * r / Re;
+   double nu = ULB * r / RE;
    double omega = 1. / (3. * nu + 0.5);
 
    double* restrict fnew = malloc(9 * N * M * sizeof(double));
@@ -164,7 +156,7 @@ int main() {
 
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
-         double ux = inlet_vel(j, ulb);
+         double ux = inlet_vel(j);
          double u2 = ux*ux;
          for (int q = 0; q < 9; q++) {
             double cu = c[q][0] * ux;
@@ -173,14 +165,13 @@ int main() {
       }
    }
 
-   int T = 20000;
    for (int t = 0; t < T; t++) {
       if (t % 2) {
-         update(fold, fnew, obstacle, omega, ulb);
+         update(fold, fnew, obstacle, omega);
       } else {
          if(!(t % 100))
             print_u(fold, t);
-         update(fnew, fold, obstacle, omega, ulb);
+         update(fnew, fold, obstacle, omega);
       }
    }
 

@@ -1,7 +1,6 @@
-module constants
-integer, parameter :: N = 128
-integer, parameter :: M = 48
+#include "param.h"
 
+module constants
 integer, parameter :: cx = N / 4
 integer, parameter :: cy = M / 2
 integer, parameter :: r = M / 9
@@ -43,14 +42,14 @@ function pmod(a, b) result(res)
 
 end function
 
-function inlet_vel(i, ulb) result(v)
+function inlet_vel(i) result(v)
    use constants
    implicit none
    integer :: i
-   real(kind=8) :: ulb, x, v
+   real(kind=8) :: x, v
 
    x = real(i,8) / (M-1)
-   v = ulb * (1 + 0.0001d0 * sin(2 * 3.142d0 * x))
+   v = ULB * (1 + 0.0001d0 * sin(2 * 3.142d0 * x))
 
 end function
 
@@ -84,11 +83,11 @@ function u(k, i, j, f) result(s)
 
 end function
 
-subroutine boundary(f, ulb)
+subroutine boundary(f)
    use constants
    implicit none
    real(kind=8), dimension(9, N, M) :: f
-   real(kind=8) :: ulb, ux, s1, s2, cu, rho_j, inlet_vel
+   real(kind=8) :: ux, s1, s2, cu, rho_j, inlet_vel
    integer :: j, q
 
    ! outflow
@@ -100,7 +99,7 @@ subroutine boundary(f, ulb)
 
    ! inflow
    do j=1,M
-      ux = inlet_vel(j, ulb)
+      ux = inlet_vel(j)
       s2 = f(1, 1, j) + f(2, 1, j) + f(3, 1, j)
       s1 = f(4, 1, j) + f(5, 1, j) + f(6, 1, j)
 
@@ -151,15 +150,15 @@ subroutine collstream(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine update(fnew, fold, obstacle, omega, ulb)
+subroutine update(fnew, fold, obstacle, omega)
    use constants
    implicit none
    real(kind=8), dimension(9, N, M) :: fnew, fold
    integer, dimension(N, M) :: obstacle
-   real(kind=8) :: omega, ulb
+   real(kind=8) :: omega
 
    call collstream(fnew, fold, obstacle, omega)
-   call boundary(fnew, ulb)
+   call boundary(fnew)
 
 end subroutine
 
@@ -183,11 +182,8 @@ end subroutine
 program lb
    use constants
    implicit none
-   real(kind=8), parameter :: Re = 160.0d0
-   real(kind=8), parameter :: ulb = 0.04d0
-   real(kind=8), parameter :: nu = ulb * r / Re
+   real(kind=8), parameter :: nu = ULB * r / RE
    real(kind=8), parameter :: omega = 1.0d0 / (3.0d0 * nu + 0.5d0)
-   integer, parameter :: T = 20000
 
    real(kind=8), allocatable :: fnew(:,:,:), fold(:,:,:)
    integer, allocatable :: obstacle(:,:)
@@ -211,7 +207,7 @@ program lb
 
    do j=1,M
       do i=1,N
-         ux = inlet_vel(j, ulb)
+         ux = inlet_vel(j)
          do q=1,9
             cu = ux * c(q,1)
             fold(q, i, j) = w(q) * (1 + 3*cu + 0.5*9*cu**2 - 0.5*3*ux**2)
@@ -221,12 +217,12 @@ program lb
 
    do time=0,T-1
       if(mod(time, 2) == 1) then
-         call update(fold, fnew, obstacle, omega, ulb)
+         call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call print_u(fold, t)
+            call print_u(fold, time)
          end if
-         call update(fnew, fold, obstacle, omega, ulb)
+         call update(fnew, fold, obstacle, omega)
       end if
    end do
 
