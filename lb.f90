@@ -43,7 +43,6 @@ function pmod(a, b) result(res)
 end function
 
 function inlet_vel(i) result(v)
-   use constants
    implicit none
    integer :: i
    real(kind=8) :: x, v
@@ -54,7 +53,6 @@ function inlet_vel(i) result(v)
 end function
 
 function rho(i, j, f) result(s)
-   use constants
    implicit none
    real(kind=8), dimension(9, N, M) :: f
    integer :: i, j, q
@@ -68,7 +66,7 @@ function rho(i, j, f) result(s)
 end function
 
 function u(k, i, j, f) result(s)
-   use constants
+   use constants, only : c
    implicit none
    real(kind=8), dimension(9, N, M) :: f
    integer :: i, j, q, k
@@ -84,7 +82,7 @@ function u(k, i, j, f) result(s)
 end function
 
 subroutine boundary(f)
-   use constants
+   use constants, only : c, w
    implicit none
    real(kind=8), dimension(9, N, M) :: f
    real(kind=8) :: ux, s1, s2, cu, rho_j, inlet_vel
@@ -114,7 +112,7 @@ subroutine boundary(f)
 end subroutine
 
 subroutine collstream(fnew, fold, obstacle, omega)
-   use constants
+   use constants, only : c, w, noslip
    implicit none
    real(kind=8), dimension(9, N, M) :: fnew, fold
    integer, dimension(N, M) :: obstacle
@@ -151,7 +149,6 @@ subroutine collstream(fnew, fold, obstacle, omega)
 end subroutine
 
 subroutine update(fnew, fold, obstacle, omega)
-   use constants
    implicit none
    real(kind=8), dimension(9, N, M) :: fnew, fold
    integer, dimension(N, M) :: obstacle
@@ -163,7 +160,6 @@ subroutine update(fnew, fold, obstacle, omega)
 end subroutine
 
 subroutine print_u(f, t)
-   use constants
    implicit none
    real(kind=8), dimension(9, N, M) :: f
    integer :: t, i, j
@@ -180,7 +176,7 @@ subroutine print_u(f, t)
 end subroutine
 
 program lb
-   use constants
+   use constants, only : cx, cy, r, c, w
    implicit none
    real(kind=8), parameter :: nu = ULB * r / RE
    real(kind=8), parameter :: omega = 1.0d0 / (3.0d0 * nu + 0.5d0)
