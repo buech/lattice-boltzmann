@@ -14,7 +14,7 @@
 #endif
 
 #ifndef RE
-#define RE 160
+#define RE 160.0
 #endif
 
 #ifndef ULB

@@ -1,8 +1,8 @@
 #include "param.h"
 
 module constants
-integer, parameter :: cx = N / 4
-integer, parameter :: cy = M / 2
+real, parameter :: cx = N / 4.0
+real, parameter :: cy = M / 2.0
 real, parameter :: r = M / 9.0
 
 real(kind=8), dimension(9) :: w = (/&
