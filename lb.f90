@@ -1,5 +1,3 @@
-#include "param.h"
-
 module constants
 real, parameter :: cx = N / 4.0
 real, parameter :: cy = M / 2.0
