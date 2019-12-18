@@ -51,20 +51,20 @@ static inline double inlet_vel(int i) {
    return ULB * (1. + 1.e-4 * sin(2.*M_PI * x));
 }
 
-static inline double rho(int i, int j, double* restrict f) {
+static inline double rho(int idx, double* restrict f) {
    double sum = 0;
    for (int q = 0; q < 9; q++)
-      sum += f[9*idx(i,j) + q];
+      sum += f[9*idx + q];
 
    return sum;
 }
 
-static inline double u(int k, int i, int j, double* restrict f) {
+static inline double u(int k, int idx, double* restrict f) {
    double sum = 0;
    for (int q = 0; q < 9; q++)
-      sum += f[9*idx(i,j) + q] * c[q][k];
+      sum += f[9*idx + q] * c[q][k];
 
-   return sum / rho(i,j, f);
+   return sum / rho(idx, f);
 }
 
 void boundary(double* restrict f) {
@@ -136,8 +136,8 @@ static void print_u(double* restrict f, int t) {
    printf("%d", t);
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
-         double ux = u(0, i, j, f);
-         double uy = u(1, i, j, f);
+         double ux = u(0, idx(i,j), f);
+         double uy = u(1, idx(i,j), f);
          printf(" %E", sqrt(ux*ux + uy*uy));
       }
    }
