@@ -120,27 +120,29 @@ subroutine collstream(fnew, fold, obstacle, omega)
    !$omp parallel do collapse(2) private(i,j,q,rho_ij,ux,uy,u2,cu)
    do j=1,M
       do i=1,N
-         rho_ij = 0.0d0
-         ux = 0.0d0
-         uy = 0.0d0
-         do q=1,9
-            rho_ij = rho_ij + fold(q,i,j)
-            ux = ux + fold(q,i,j) * c(q,1)
-            uy = uy + fold(q,i,j) * c(q,2)
-         end do
-         ux = ux / rho_ij
-         uy = uy / rho_ij
-         u2 = ux**2 + uy**2
-         do q=1,9
-            cu = ux*c(q,1) + uy*c(q,2)
-            if(obstacle(i,j) == 0) then
+         if(obstacle(i,j) == 0) then
+            rho_ij = 0.0d0
+            ux = 0.0d0
+            uy = 0.0d0
+            do q=1,9
+               rho_ij = rho_ij + fold(q,i,j)
+               ux = ux + fold(q,i,j) * c(q,1)
+               uy = uy + fold(q,i,j) * c(q,2)
+            end do
+            ux = ux / rho_ij
+            uy = uy / rho_ij
+            u2 = ux**2 + uy**2
+            do q=1,9
+               cu = ux*c(q,1) + uy*c(q,2)
                fnew(q, pmod(i + c(q,1) - 1, N) + 1, pmod(j + c(q,2) - 1, M) + 1) =&
                   (1-omega) * fold(q,i,j)&
                   + omega * w(q) * rho_ij * (1 + 3*cu + 0.5*9*cu**2 - 0.5*3*u2)
-            else
+            end do
+         else
+            do q=1,9
                fnew(q, pmod(i + c(q,1) - 1, N) + 1, pmod(j + c(q,2) - 1, M) + 1) = fold(noslip(q), i, j)
-            end if
-         end do
+            end do
+         end if
       end do
    end do
 

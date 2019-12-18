@@ -99,25 +99,29 @@ void collstream(double* restrict fnew, double* restrict fold, int* restrict obst
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
          int id = idx(i,j);
-         double ux = 0;
-         double uy = 0;
-         double rho_ij = 0;
-         for (int q = 0; q < 9; q++) {
-            rho_ij += fold[9*id + q];
-            ux += fold[9*id + q] * c[q][0];
-            uy += fold[9*id + q] * c[q][1];
-         }
-         ux /= rho_ij;
-         uy /= rho_ij;
-         double u2 = ux*ux + uy*uy;
-         for (int q = 0; q < 9; q++) {
-            int idnew = 9*idx(mod(i + c[q][0], N), mod(j + c[q][1], M)) + q;
-            double cu = c[q][0] * ux + c[q][1] * uy;
-            if (!obstacle[id]) {
+         if (!obstacle[id]) {
+            double ux = 0;
+            double uy = 0;
+            double rho_ij = 0;
+            for (int q = 0; q < 9; q++) {
+               rho_ij += fold[9*id + q];
+               ux += fold[9*id + q] * c[q][0];
+               uy += fold[9*id + q] * c[q][1];
+            }
+            ux /= rho_ij;
+            uy /= rho_ij;
+            double u2 = ux*ux + uy*uy;
+            for (int q = 0; q < 9; q++) {
+               int idnew = 9*idx(mod(i + c[q][0], N), mod(j + c[q][1], M)) + q;
+               double cu = c[q][0] * ux + c[q][1] * uy;
                double feq_ijq = w[q] * rho_ij * (1 + 3 * cu + 0.5 * 9 * cu*cu - 0.5 * 3 * u2);
                fnew[idnew] = (1 - omega) * fold[9*id + q] + omega*feq_ijq;
-            } else
+            }
+         } else {
+            for (int q = 0; q < 9; q++) {
+               int idnew = 9*idx(mod(i + c[q][0], N), mod(j + c[q][1], M)) + q;
                fnew[idnew] = fold[9*id + noslip[q]];
+            }
          }
       }
    }
