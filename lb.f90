@@ -159,16 +159,24 @@ subroutine update(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine print_u(f, t)
+subroutine print_u(vel, f, t)
    implicit none
+   real(kind=8), dimension(N, M) :: vel
    real(kind=8), dimension(9, N, M) :: f
    integer :: t, i, j
    real(kind=8) :: u
 
+   !$omp parallel do collapse(2) private(i,j) schedule(static)
+   do i=1,N
+      do j=1,M
+         vel(i,j) = sqrt(u(1,i,j, f)**2 + u(2,i,j, f)**2)
+      end do
+   end do
+
    write (*, '(i0,1x)', advance='no') t
    do i=1,N
       do j=1,M
-         write (*, '(f0.10,1x)', advance='no') sqrt(u(1,i,j, f)**2 + u(2,i,j, f)**2)
+         write (*, '(f0.10,1x)', advance='no') vel(i,j)
       end do
    end do
    print *
@@ -182,6 +190,7 @@ program lb
    real(kind=8), parameter :: omega = 1.0d0 / (3.0d0 * nu + 0.5d0)
 
    real(kind=8), allocatable :: fnew(:,:,:), fold(:,:,:)
+   real(kind=8), allocatable :: vel(:,:)
    integer, allocatable :: obstacle(:,:)
 
    integer :: i, j, q, time
@@ -189,6 +198,7 @@ program lb
 
    allocate(fnew(9,N,M))
    allocate(fold(9,N,M))
+   allocate(vel(N,M))
    allocate(obstacle(N,M))
 
    do j=1,M
@@ -216,7 +226,7 @@ program lb
          call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call print_u(fold, time)
+            call print_u(vel, fold, time)
          end if
          call update(fnew, fold, obstacle, omega)
       end if

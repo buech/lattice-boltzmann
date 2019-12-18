@@ -132,13 +132,18 @@ void update(double* restrict fnew, double* restrict fold, int* restrict obstacle
    boundary(fnew);
 }
 
-static void print_u(double* restrict f, int t) {
+static void print_u(double* restrict vel, double* restrict f, int t) {
+#pragma omp parallel for schedule(static)
+   for (int idx = 0; idx < N*M; idx++) {
+      double ux = u(0, idx, f);
+      double uy = u(1, idx, f);
+      vel[idx] = sqrt(ux*ux + uy*uy);
+   }
+
    printf("%d", t);
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
-         double ux = u(0, idx(i,j), f);
-         double uy = u(1, idx(i,j), f);
-         printf(" %E", sqrt(ux*ux + uy*uy));
+         printf(" %E", vel[idx(i,j)]);
       }
    }
    putchar('\n');
@@ -150,6 +155,7 @@ int main() {
 
    double* restrict fnew = malloc(9 * N * M * sizeof(double));
    double* restrict fold = malloc(9 * N * M * sizeof(double));
+   double* restrict vel = malloc(N*M * sizeof(double));
 
    int* restrict obstacle = malloc(N*M * sizeof(int));
    for (int i = 0; i < N; i++)
@@ -172,13 +178,14 @@ int main() {
          update(fold, fnew, obstacle, omega);
       } else {
          if(!(t % 100))
-            print_u(fold, t);
+            print_u(vel, fold, T-1);
          update(fnew, fold, obstacle, omega);
       }
    }
 
    free(fnew);
    free(fold);
+   free(vel);
    free(obstacle);
 
    return 0;
