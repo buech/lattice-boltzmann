@@ -132,7 +132,7 @@ void update(double* restrict fnew, double* restrict fold, int* restrict obstacle
    boundary(fnew);
 }
 
-static void print_u(double* restrict vel, double* restrict f, int t) {
+static void write_u(FILE* outfile, double* restrict vel, double* restrict f, int t) {
 #pragma omp parallel for schedule(static)
    for (int idx = 0; idx < N*M; idx++) {
       double ux = u(0, idx, f);
@@ -140,16 +140,22 @@ static void print_u(double* restrict vel, double* restrict f, int t) {
       vel[idx] = sqrt(ux*ux + uy*uy);
    }
 
-   printf("%d", t);
+   fprintf(outfile, "%d", t);
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
-         printf(" %E", vel[idx(i,j)]);
+         fprintf(outfile, " %E", vel[idx(i,j)]);
       }
    }
-   putchar('\n');
+   fputc('\n', outfile);
 }
 
 int main() {
+   FILE *outfile = fopen("out.dat", "w");
+   if (!outfile) {
+      fputs("ERROR: Could not open output file\n", stderr);
+      exit(1);
+   }
+
    double nu = ULB * r / RE;
    double omega = 1. / (3. * nu + 0.5);
 
@@ -178,10 +184,12 @@ int main() {
          update(fold, fnew, obstacle, omega);
       } else {
          if(!(t % 100))
-            print_u(vel, fold, T-1);
+            write_u(outfile, vel, fold, T-1);
          update(fnew, fold, obstacle, omega);
       }
    }
+
+   fclose(outfile);
 
    free(fnew);
    free(fold);

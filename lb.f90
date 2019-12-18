@@ -159,8 +159,9 @@ subroutine update(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine print_u(vel, f, t)
+subroutine print_u(out_unit, vel, f, t)
    implicit none
+   integer, intent(in) :: out_unit
    real(kind=8), dimension(N, M) :: vel
    real(kind=8), dimension(9, N, M) :: f
    integer :: t, i, j
@@ -173,19 +174,20 @@ subroutine print_u(vel, f, t)
       end do
    end do
 
-   write (*, '(i0,1x)', advance='no') t
+   write (out_unit, '(i0,1x)', advance='no') t
    do i=1,N
       do j=1,M
-         write (*, '(f0.10,1x)', advance='no') vel(i,j)
+         write (out_unit, '(f0.10,1x)', advance='no') vel(i,j)
       end do
    end do
-   print *
+   write(out_unit, *)
 
 end subroutine
 
 program lb
    use constants, only : cx, cy, r, c, w
    implicit none
+
    real(kind=8), parameter :: nu = ULB * r / RE
    real(kind=8), parameter :: omega = 1.0d0 / (3.0d0 * nu + 0.5d0)
 
@@ -195,6 +197,17 @@ program lb
 
    integer :: i, j, q, time
    real(kind=8) :: cu, ux, inlet_vel
+
+   integer, parameter :: out_unit = 1
+   integer :: stat
+   character(256) :: msg
+
+   open(out_unit, file='out.dat', iostat=stat, iomsg=msg)
+   if(stat /= 0) then
+      print '(a)', 'ERROR: Could not open output file'
+      print '(a)', 'ERROR: msg = '//trim(msg)
+      stop 1
+   end if
 
    allocate(fnew(9,N,M))
    allocate(fold(9,N,M))
@@ -226,10 +239,12 @@ program lb
          call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call print_u(vel, fold, time)
+            call print_u(out_unit, vel, fold, time)
          end if
          call update(fnew, fold, obstacle, omega)
       end if
    end do
+
+   close(out_unit)
 
 end program
