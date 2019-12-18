@@ -95,7 +95,7 @@ void boundary(double* restrict f) {
 }
 
 void collstream(double* restrict fnew, double* restrict fold, int* restrict obstacle, double omega) {
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2) schedule(static)
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
          int id = idx(i,j);
