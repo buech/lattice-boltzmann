@@ -159,12 +159,12 @@ subroutine update(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine write_u(out_unit, f, t)
+subroutine write_u(out_unit, f)
    implicit none
    integer, intent(in) :: out_unit
    real(kind=8), dimension(9, N, M) :: f
    real(kind=8), dimension(N, M) :: vel
-   integer :: t, i, j
+   integer :: i, j
    real(kind=8) :: u
 
    !$omp parallel do collapse(2) private(i,j) schedule(static)
@@ -174,7 +174,6 @@ subroutine write_u(out_unit, f, t)
       end do
    end do
 
-   write (out_unit, '(i0,1x)', advance='no') t
    do i=1,N
       do j=1,M
          write (out_unit, '(f0.10,1x)', advance='no') vel(i,j)
@@ -237,7 +236,7 @@ program lb
          call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call write_u(out_unit, fold, time)
+            call write_u(out_unit, fold)
          end if
          call update(fnew, fold, obstacle, omega)
       end if

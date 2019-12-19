@@ -18,16 +18,14 @@ fname = sys.argv[3]
 
 data = np.loadtxt(fname)
 
-t = data[:,0]
-
 fig = plt.figure()
 ax = plt.subplot(111)
 
-vmin = data[:,1:].min()
-vmax = data[:,1:].max()
+vmin = data.min()
+vmax = data.max()
 
 im = plt.imshow(
-        np.reshape(data[0,1:], (N,M)).T,
+        np.reshape(data[0,:], (N,M)).T,
         vmin=vmin,
         vmax=vmax,
         cmap="viridis",
@@ -36,13 +34,13 @@ im = plt.imshow(
         )
 
 def update(i):
-    im.set_array(np.reshape(data[i,1:], (N,M)).T)
+    im.set_array(np.reshape(data[i,:], (N,M)).T)
     return [im]
 
 anim = animation.FuncAnimation(
         fig,
         update,
-        range(1,len(t)),
+	range(1,len(data[:,0])),
         interval=42,
         blit=True
         )
