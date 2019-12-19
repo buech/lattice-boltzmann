@@ -159,32 +159,48 @@ subroutine update(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine write_u(out_unit, f)
+subroutine write_u(dataset, f)
+   use hdf5
+
    implicit none
-   integer, intent(in) :: out_unit
+
+   integer(hid_t) :: dataset
    real(kind=8), dimension(9, N, M) :: f
+
    real(kind=8), dimension(N, M) :: vel
    integer :: i, j
    real(kind=8) :: u
 
+   integer :: err
+   integer(hid_t) :: dataspace, memspace
+   integer(hsize_t), dimension(2) :: dims = (/N,M/)
+   integer(hsize_t), dimension(3) :: start = (/0,0,0/)
+   integer(hsize_t), dimension(3) :: count = (/N,M,1/)
+   integer(hsize_t), dimension(3) :: stride = (/1,1,1/)
+   integer(hsize_t), dimension(3) :: block = (/1,1,1/)
+
+   call h5dget_space_f(dataset, dataspace, err)
+   call h5screate_simple_f(2, dims, memspace, err)
+   call h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, start, count, err, &
+      stride, block)
+
    !$omp parallel do collapse(2) private(i,j) schedule(static)
-   do i=1,N
-      do j=1,M
+   do j=1,M
+      do i=1,N
          vel(i,j) = sqrt(u(1,i,j, f)**2 + u(2,i,j, f)**2)
       end do
    end do
 
-   do i=1,N
-      do j=1,M
-         write (out_unit, '(f0.10,1x)', advance='no') vel(i,j)
-      end do
-   end do
-   write(out_unit, *)
+   call h5dwrite_f(dataset, H5T_NATIVE_DOUBLE, vel, dims, err, memspace, dataspace)
+
+   start(3) = start(3) + 1
 
 end subroutine
 
 program lb
    use constants, only : cx, cy, r, c, w
+   use hdf5
+
    implicit none
 
    real(kind=8), parameter :: nu = ULB * r / RE
@@ -196,16 +212,22 @@ program lb
    integer :: i, j, q, time
    real(kind=8) :: cu, ux, inlet_vel
 
-   integer, parameter :: out_unit = 1
-   integer :: stat
-   character(256) :: msg
+   character(len=6), parameter :: filename = 'out.h5'
+   character(len=8), parameter :: dsetname = 'velocity'
+   integer, parameter :: rank = 3
 
-   open(out_unit, file='out.dat', iostat=stat, iomsg=msg)
-   if(stat /= 0) then
-      print '(a)', 'ERROR: Could not open output file'
-      print '(a)', 'ERROR: msg = '//trim(msg)
-      stop 1
-   end if
+   integer :: err
+   integer(hid_t) :: outfile
+   integer(hid_t) :: dataset
+   integer(hid_t) :: dataspace
+
+   integer(hsize_t), dimension(3) :: dims = (/N,M,T/INTERVAL/)
+
+   call h5open_f(err)
+
+   call h5fcreate_f(filename, H5F_ACC_TRUNC_F, outfile, err)
+   call h5screate_simple_f(rank, dims, dataspace, err)
+   call h5dcreate_f(outfile, dsetname, H5T_NATIVE_DOUBLE, dataspace, dataset, err)
 
    allocate(fnew(9,N,M))
    allocate(fold(9,N,M))
@@ -236,12 +258,16 @@ program lb
          call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call write_u(out_unit, fold)
+            call write_u(dataset, fold)
          end if
          call update(fnew, fold, obstacle, omega)
       end if
    end do
 
-   close(out_unit)
+   call h5sclose_f(dataspace, err)
+   call h5dclose_f(dataset, err)
+   call h5fclose_f(outfile, err)
+
+   call h5close_f(err)
 
 end program
