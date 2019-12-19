@@ -159,11 +159,11 @@ subroutine update(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine write_u(out_unit, vel, f, t)
+subroutine write_u(out_unit, f, t)
    implicit none
    integer, intent(in) :: out_unit
-   real(kind=8), dimension(N, M) :: vel
    real(kind=8), dimension(9, N, M) :: f
+   real(kind=8), dimension(N, M) :: vel
    integer :: t, i, j
    real(kind=8) :: u
 
@@ -192,7 +192,6 @@ program lb
    real(kind=8), parameter :: omega = 1.0d0 / (3.0d0 * nu + 0.5d0)
 
    real(kind=8), allocatable :: fnew(:,:,:), fold(:,:,:)
-   real(kind=8), allocatable :: vel(:,:)
    integer, allocatable :: obstacle(:,:)
 
    integer :: i, j, q, time
@@ -211,7 +210,6 @@ program lb
 
    allocate(fnew(9,N,M))
    allocate(fold(9,N,M))
-   allocate(vel(N,M))
    allocate(obstacle(N,M))
 
    do j=1,M
@@ -239,7 +237,7 @@ program lb
          call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call write_u(out_unit, vel, fold, time)
+            call write_u(out_unit, fold, time)
          end if
          call update(fnew, fold, obstacle, omega)
       end if
