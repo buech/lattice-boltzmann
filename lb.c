@@ -132,7 +132,9 @@ void update(double* restrict fnew, double* restrict fold, int* restrict obstacle
    boundary(fnew);
 }
 
-static void write_u(FILE* outfile, double* restrict vel, double* restrict f, int t) {
+static void write_u(FILE* outfile, double* restrict f, int t) {
+   static double vel[N*M];
+
 #pragma omp parallel for schedule(static)
    for (int idx = 0; idx < N*M; idx++) {
       double ux = u(0, idx, f);
@@ -161,7 +163,6 @@ int main() {
 
    double* restrict fnew = malloc(9 * N * M * sizeof(double));
    double* restrict fold = malloc(9 * N * M * sizeof(double));
-   double* restrict vel = malloc(N*M * sizeof(double));
 
    int* restrict obstacle = malloc(N*M * sizeof(int));
    for (int i = 0; i < N; i++)
@@ -184,7 +185,7 @@ int main() {
          update(fold, fnew, obstacle, omega);
       } else {
          if(!(t % 100))
-            write_u(outfile, vel, fold, T-1);
+            write_u(outfile, fold, T-1);
          update(fnew, fold, obstacle, omega);
       }
    }
@@ -193,7 +194,6 @@ int main() {
 
    free(fnew);
    free(fold);
-   free(vel);
    free(obstacle);
 
    return 0;
