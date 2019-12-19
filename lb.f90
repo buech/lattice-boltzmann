@@ -159,7 +159,7 @@ subroutine update(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine print_u(out_unit, vel, f, t)
+subroutine write_u(out_unit, vel, f, t)
    implicit none
    integer, intent(in) :: out_unit
    real(kind=8), dimension(N, M) :: vel
@@ -239,7 +239,7 @@ program lb
          call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call print_u(out_unit, vel, fold, time)
+            call write_u(out_unit, vel, fold, time)
          end if
          call update(fnew, fold, obstacle, omega)
       end if
