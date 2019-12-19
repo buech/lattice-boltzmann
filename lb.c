@@ -2,10 +2,16 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "hdf5.h"
+
 #define _USE_MATH_DEFINES
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+#define OUTFILE_NAME "out.h5"
+#define DSET_NAME "velocity"
+#define RANK 3
 
 static const int cx = N / 4;
 static const int cy = M / 2;
@@ -132,8 +138,15 @@ void update(double* restrict fnew, double* restrict fold, int* restrict obstacle
    boundary(fnew);
 }
 
-static void write_u(FILE* outfile, double* restrict f) {
+static herr_t write_u(hid_t dataset, double* restrict f) {
    static double vel[N*M];
+
+   static hsize_t dims[] = {N,M}, start[RANK] = {0}, count[] = {1,N,M};
+   hid_t mspace, fspace;
+   herr_t err;
+
+   mspace = H5Screate_simple(RANK-1, dims, NULL);
+   fspace = H5Dget_space(dataset);
 
 #pragma omp parallel for schedule(static)
    for (int idx = 0; idx < N*M; idx++) {
@@ -142,20 +155,21 @@ static void write_u(FILE* outfile, double* restrict f) {
       vel[idx] = sqrt(ux*ux + uy*uy);
    }
 
-   for (int i = 0; i < N; i++) {
-      for (int j = 0; j < M; j++) {
-         fprintf(outfile, " %E", vel[idx(i,j)]);
-      }
-   }
-   fputc('\n', outfile);
+   err = H5Sselect_hyperslab(fspace, H5S_SELECT_SET, start, NULL, count, NULL);
+   err = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, mspace, fspace, H5P_DEFAULT, vel);
+
+   start[0]++;
+
+   return err;
 }
 
 int main() {
-   FILE *outfile = fopen("out.dat", "w");
-   if (!outfile) {
-      fputs("ERROR: Could not open output file\n", stderr);
-      exit(1);
-   }
+   hid_t file, dataset, dataspace;
+   hsize_t dims[] = {T/INTERVAL, N, M};
+
+   file = H5Fcreate(OUTFILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+   dataspace = H5Screate_simple(RANK, dims, NULL);
+   dataset = H5Dcreate2(file, DSET_NAME, H5T_NATIVE_DOUBLE, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
    double nu = ULB * r / RE;
    double omega = 1. / (3. * nu + 0.5);
@@ -183,13 +197,16 @@ int main() {
       if (t % 2) {
          update(fold, fnew, obstacle, omega);
       } else {
-         if(!(t % 100))
-            write_u(outfile, fold);
+         if (!(t % INTERVAL)) {
+            write_u(dataset, fold);
+         }
          update(fnew, fold, obstacle, omega);
       }
    }
 
-   fclose(outfile);
+   H5Sclose(dataspace);
+   H5Dclose(dataset);
+   H5Fclose(file);
 
    free(fnew);
    free(fold);

@@ -3,20 +3,21 @@
 from __future__ import division, print_function
 import sys
 import numpy as np
+import h5py
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-usage = "usage: %s LENGTH HEIGHT FILENAME" % sys.argv[0]
+usage = "usage: %s FILENAME" % sys.argv[0]
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 2:
     print(usage)
     exit(1)
 
-N = int(sys.argv[1])
-M = int(sys.argv[2])
-fname = sys.argv[3]
+fname = sys.argv[1]
 
-data = np.loadtxt(fname)
+with h5py.File(fname, 'r') as f:
+    list(f.keys())
+    data = np.array(f['velocity'][()])
 
 fig = plt.figure()
 ax = plt.subplot(111)
@@ -25,7 +26,7 @@ vmin = data.min()
 vmax = data.max()
 
 im = plt.imshow(
-        np.reshape(data[0,:], (N,M)).T,
+        data[0].T,
         vmin=vmin,
         vmax=vmax,
         cmap="viridis",
@@ -34,13 +35,13 @@ im = plt.imshow(
         )
 
 def update(i):
-    im.set_array(np.reshape(data[i,:], (N,M)).T)
+    im.set_array(data[i].T)
     return [im]
 
 anim = animation.FuncAnimation(
         fig,
         update,
-	range(1,len(data[:,0])),
+	range(1, data.shape[0]),
         interval=42,
         blit=True
         )
