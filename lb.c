@@ -185,7 +185,7 @@ int main() {
          update(fold, fnew, obstacle, omega);
       } else {
          if(!(t % 100))
-            write_u(outfile, fold, T-1);
+            write_u(outfile, fold, t);
          update(fnew, fold, obstacle, omega);
       }
    }
