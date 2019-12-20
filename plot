@@ -41,7 +41,7 @@ def update(i):
 anim = animation.FuncAnimation(
         fig,
         update,
-	range(1, data.shape[0]),
+        range(1, data.shape[0]),
         interval=42,
         blit=True
         )
