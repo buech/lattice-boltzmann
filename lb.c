@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 #include <math.h>
 
 #include "hdf5.h"
@@ -13,9 +15,9 @@
 #define DSET_NAME "velocity"
 #define RANK 3
 
-static const int cx = N / 4;
-static const int cy = M / 2;
-static const int r = M / 9;
+//static const int cx = N / 4;
+//static const int cy = M / 2;
+//static const int r = M / 9;
 
 static const double w[9] = {
    4./9. ,
@@ -170,16 +172,26 @@ int main() {
    subspace = H5Dget_space(dataset);
    memspace = H5Screate_simple(RANK-1, subdims, NULL);
 
-   double nu = ULB * r / RE;
+   double nu = ULB * M/9 / RE;
    double omega = 1. / (3. * nu + 0.5);
 
    double* restrict fnew = malloc(9 * N * M * sizeof(double));
    double* restrict fold = malloc(9 * N * M * sizeof(double));
 
    int* restrict obstacle = malloc(N*M * sizeof(int));
-   for (int i = 0; i < N; i++)
-      for (int j = 0; j < M; j++)
-         obstacle[idx(i,j)] = ((i-cx)*(i-cx) + (j-cy)*(j-cy) < r*r);
+   memset(obstacle, 0, N*M * sizeof(int));
+
+   srand(time(NULL));
+   for (int n = 0; n < N/4; n++) {
+      int cx = N/16 + rand()%(N/2);
+      int cy = rand() % M;
+      int r = M / (50 + (int)rand()%20);
+      for (int i = 0; i < N; i++) {
+         for (int j = 0; j < M; j++) {
+            obstacle[idx(i,j)] |= ((i-cx)*(i-cx) + (j-cy)*(j-cy) < r*r);
+         }
+      }
+   }
 
    for (int i = 0; i < N; i++) {
       for (int j = 0; j < M; j++) {
