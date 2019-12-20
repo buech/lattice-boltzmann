@@ -22,10 +22,10 @@ all: lb lbf
 
 lb: lb.c
 
-lbf: lb.f90
+lbf: lbf.f90
 	$(FC) $(FFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
-	rm -f lb lbf constants.mod
+	rm -f lb lbf constants.mod *.o
 
 .PHONY: all clean

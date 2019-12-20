@@ -159,35 +159,29 @@ subroutine update(fnew, fold, obstacle, omega)
 
 end subroutine
 
-subroutine write_u(dataset, f)
+subroutine write_u(dataset, dataspace, memspace, f)
    use hdf5
 
    implicit none
 
-   integer(hid_t) :: dataset
-   real(kind=8), dimension(9, N, M) :: f
+   integer(hid_t), intent(in) :: dataset, dataspace, memspace
+   real(kind=8), dimension(9, N, M), intent(in) :: f
 
-   real(kind=8), dimension(N, M) :: vel
+   real(kind=8), dimension(M, N) :: vel
    integer :: i, j
    real(kind=8) :: u
 
    integer :: err
-   integer(hid_t) :: dataspace, memspace
-   integer(hsize_t), dimension(2) :: dims = (/N,M/)
-   integer(hsize_t), dimension(3) :: start = (/0,0,0/)
-   integer(hsize_t), dimension(3) :: count = (/N,M,1/)
-   integer(hsize_t), dimension(3) :: stride = (/1,1,1/)
-   integer(hsize_t), dimension(3) :: block = (/1,1,1/)
+   integer(hsize_t), dimension(2) :: dims = (/M, N/)
+   integer(hsize_t), dimension(3) :: start = (/0, 0, 0/)
+   integer(hsize_t), dimension(3) :: count = (/M, N, 1/)
 
-   call h5dget_space_f(dataset, dataspace, err)
-   call h5screate_simple_f(2, dims, memspace, err)
-   call h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, start, count, err, &
-      stride, block)
+   call h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, start, count, err)
 
    !$omp parallel do collapse(2) private(i,j) schedule(static)
-   do j=1,M
-      do i=1,N
-         vel(i,j) = sqrt(u(1,i,j, f)**2 + u(2,i,j, f)**2)
+   do i=1,N
+      do j=1,M
+         vel(j,i) = sqrt(u(1,i,j, f)**2 + u(2,i,j, f)**2)
       end do
    end do
 
@@ -217,17 +211,19 @@ program lb
    integer, parameter :: rank = 3
 
    integer :: err
-   integer(hid_t) :: outfile
-   integer(hid_t) :: dataset
-   integer(hid_t) :: dataspace
+   integer(hid_t) :: outfile, dataset, dataspace, subspace, memspace
 
-   integer(hsize_t), dimension(3) :: dims = (/N,M,T/INTERVAL/)
+   integer(hsize_t), dimension(rank) :: dims = (/M, N, T/INTERVAL/)
+   integer(hsize_t), dimension(rank-1) :: subdims = (/M, N/)
 
    call h5open_f(err)
 
    call h5fcreate_f(filename, H5F_ACC_TRUNC_F, outfile, err)
    call h5screate_simple_f(rank, dims, dataspace, err)
    call h5dcreate_f(outfile, dsetname, H5T_NATIVE_DOUBLE, dataspace, dataset, err)
+
+   call h5dget_space_f(dataset, subspace, err)
+   call h5screate_simple_f(rank-1, subdims, memspace, err)
 
    allocate(fnew(9,N,M))
    allocate(fold(9,N,M))
@@ -258,13 +254,15 @@ program lb
          call update(fold, fnew, obstacle, omega)
       else
          if(mod(time, 100) == 0) then
-            call write_u(dataset, fold)
+            call write_u(dataset, subspace, memspace, fold)
          end if
          call update(fnew, fold, obstacle, omega)
       end if
    end do
 
    call h5sclose_f(dataspace, err)
+   call h5sclose_f(subspace, err)
+   call h5sclose_f(memspace, err)
    call h5dclose_f(dataset, err)
    call h5fclose_f(outfile, err)
 

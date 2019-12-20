@@ -138,15 +138,11 @@ void update(double* restrict fnew, double* restrict fold, int* restrict obstacle
    boundary(fnew);
 }
 
-static herr_t write_u(hid_t dataset, double* restrict f) {
+static herr_t write_u(hid_t dataset, hid_t dataspace, hid_t memspace, double* restrict f) {
    static double vel[N*M];
-
-   static hsize_t dims[] = {N,M}, start[RANK] = {0}, count[] = {1,N,M};
-   hid_t mspace, fspace;
+   static hsize_t start[RANK] = {0};
+   static hsize_t count[] = {1, N, M};
    herr_t err;
-
-   mspace = H5Screate_simple(RANK-1, dims, NULL);
-   fspace = H5Dget_space(dataset);
 
 #pragma omp parallel for schedule(static)
    for (int idx = 0; idx < N*M; idx++) {
@@ -155,8 +151,8 @@ static herr_t write_u(hid_t dataset, double* restrict f) {
       vel[idx] = sqrt(ux*ux + uy*uy);
    }
 
-   err = H5Sselect_hyperslab(fspace, H5S_SELECT_SET, start, NULL, count, NULL);
-   err = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, mspace, fspace, H5P_DEFAULT, vel);
+   err = H5Sselect_hyperslab(dataspace, H5S_SELECT_SET, start, NULL, count, NULL);
+   err = H5Dwrite(dataset, H5T_NATIVE_DOUBLE, memspace, dataspace, H5P_DEFAULT, vel);
 
    start[0]++;
 
@@ -164,12 +160,15 @@ static herr_t write_u(hid_t dataset, double* restrict f) {
 }
 
 int main() {
-   hid_t file, dataset, dataspace;
+   hid_t file, dataset, dataspace, subspace, memspace;
    hsize_t dims[] = {T/INTERVAL, N, M};
+   hsize_t subdims[] = {N, M};
 
    file = H5Fcreate(OUTFILE_NAME, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
    dataspace = H5Screate_simple(RANK, dims, NULL);
    dataset = H5Dcreate2(file, DSET_NAME, H5T_NATIVE_DOUBLE, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+   subspace = H5Dget_space(dataset);
+   memspace = H5Screate_simple(RANK-1, subdims, NULL);
 
    double nu = ULB * r / RE;
    double omega = 1. / (3. * nu + 0.5);
@@ -198,13 +197,15 @@ int main() {
          update(fold, fnew, obstacle, omega);
       } else {
          if (!(t % INTERVAL)) {
-            write_u(dataset, fold);
+            write_u(dataset, subspace, memspace, fold);
          }
          update(fnew, fold, obstacle, omega);
       }
    }
 
    H5Sclose(dataspace);
+   H5Sclose(subspace);
+   H5Sclose(memspace);
    H5Dclose(dataset);
    H5Fclose(file);
 
