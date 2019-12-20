@@ -253,7 +253,7 @@ program lb
       if(mod(time, 2) == 1) then
          call update(fold, fnew, obstacle, omega)
       else
-         if(mod(time, 100) == 0) then
+         if(mod(time, INTERVAL) == 0) then
             call write_u(dataset, subspace, memspace, fold)
          end if
          call update(fnew, fold, obstacle, omega)
