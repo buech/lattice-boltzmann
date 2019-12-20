@@ -1,7 +1,8 @@
-FC = gfortran
 CFLAGS += -std=c99 -Wall -Wextra -pedantic
 FFLAGS += -std=f2003 -Wall -Wextra -pedantic -cpp
-LDLIBS = -lm
+LDLIBS += -lhdf5 -lm
+FLIBS += -lhdf5_fortran
+HDF5_PATH ?= /usr
 
 N ?= 128
 M ?= 48
@@ -23,7 +24,7 @@ all: lb lbf
 lb: lb.c
 
 lbf: lbf.f90
-	$(FC) $(FFLAGS) $(CPPFLAGS) $< -o $@
+	$(FC) $(FFLAGS) $(CPPFLAGS) -I$(HDF5_PATH)/include $< $(FLIBS) -o $@
 
 clean:
 	rm -f lb lbf constants.mod *.o
